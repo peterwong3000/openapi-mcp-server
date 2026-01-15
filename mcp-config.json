@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "openapi-reader": {
+      "command": "/home/peter/works/rust/openapi-mcp-server/target/release/openapi-mcp-server",
+      "args": []
+    }
+  }
+}

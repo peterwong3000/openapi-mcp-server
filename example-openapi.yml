@@ -1,0 +1,227 @@
+openapi: 3.0.0
+info:
+  title: 示例 API
+  version: 1.0.0
+  description: 这是一个示例 OpenAPI 规范
+servers:
+  - url: https://api.example.com/v1
+    description: 生产环境
+  - url: https://staging-api.example.com/v1
+    description: 测试环境
+
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      summary: 获取用户列表
+      description: 获取所有用户的列表，支持分页
+      tags:
+        - users
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: 每页数量
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 成功返回用户列表
+        '400':
+          description: 请求参数错误
+
+    post:
+      operationId: createUser
+      summary: 创建新用户
+      description: 创建一个新的用户账户
+      tags:
+        - users
+      requestBody:
+        description: 用户信息
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: 用户创建成功
+        '400':
+          description: 请求参数错误
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      summary: 获取用户详情
+      description: 根据 ID 获取单个用户的详细信息
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          description: 用户 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回用户信息
+        '404':
+          description: 用户不存在
+
+    put:
+      operationId: updateUser
+      summary: 更新用户信息
+      description: 更新指定用户的信息
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          description: 用户 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 更新的用户信息
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: 更新成功
+        '404':
+          description: 用户不存在
+
+    delete:
+      operationId: deleteUser
+      summary: 删除用户
+      description: 删除指定的用户
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          description: 用户 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 删除成功
+        '404':
+          description: 用户不存在
+
+  /posts:
+    get:
+      operationId: listPosts
+      summary: 获取文章列表
+      description: 获取所有文章的列表
+      tags:
+        - posts
+      parameters:
+        - name: userId
+          in: query
+          description: 筛选指定用户的文章
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回文章列表
+
+    post:
+      operationId: createPost
+      summary: 创建文章
+      description: 创建一篇新文章
+      tags:
+        - posts
+      requestBody:
+        description: 文章内容
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '201':
+          description: 文章创建成功
+
+  /posts/{postId}:
+    get:
+      operationId: getPost
+      summary: 获取文章详情
+      description: 根据 ID 获取单篇文章的详细内容
+      tags:
+        - posts
+      parameters:
+        - name: postId
+          in: path
+          description: 文章 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功返回文章信息
+        '404':
+          description: 文章不存在
+
+components:
+  schemas:
+    User:
+      type: object
+      description: 用户信息
+      properties:
+        id:
+          type: string
+          description: 用户 ID
+        name:
+          type: string
+          description: 用户名称
+        email:
+          type: string
+          format: email
+          description: 用户邮箱
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+      required:
+        - name
+        - email
+
+    Post:
+      type: object
+      description: 文章信息
+      properties:
+        id:
+          type: string
+          description: 文章 ID
+        title:
+          type: string
+          description: 文章标题
+        content:
+          type: string
+          description: 文章内容
+        userId:
+          type: string
+          description: 作者用户 ID
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+      required:
+        - title
+        - content
+        - userId
