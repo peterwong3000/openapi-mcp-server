@@ -1,51 +1,51 @@
 openapi: 3.0.0
 info:
-  title: 示例 API
+  title: Example API
   version: 1.0.0
-  description: 这是一个示例 OpenAPI 规范
+  description: This is an example OpenAPI specification
 servers:
   - url: https://api.example.com/v1
-    description: 生产环境
+    description: Production environment
   - url: https://staging-api.example.com/v1
-    description: 测试环境
+    description: Staging environment
 
 paths:
   /users:
     get:
       operationId: listUsers
-      summary: 获取用户列表
-      description: 获取所有用户的列表，支持分页
+      summary: Get user list
+      description: Get a paginated list of all users
       tags:
         - users
       parameters:
         - name: page
           in: query
-          description: 页码
+          description: Page number
           required: false
           schema:
             type: integer
             default: 1
         - name: limit
           in: query
-          description: 每页数量
+          description: Items per page
           required: false
           schema:
             type: integer
             default: 10
       responses:
         '200':
-          description: 成功返回用户列表
+          description: User list returned successfully
         '400':
-          description: 请求参数错误
+          description: Invalid request parameters
 
     post:
       operationId: createUser
-      summary: 创建新用户
-      description: 创建一个新的用户账户
+      summary: Create a new user
+      description: Create a new user account
       tags:
         - users
       requestBody:
-        description: 用户信息
+        description: User information
         required: true
         content:
           application/json:
@@ -53,45 +53,45 @@ paths:
               $ref: '#/components/schemas/User'
       responses:
         '201':
-          description: 用户创建成功
+          description: User created successfully
         '400':
-          description: 请求参数错误
+          description: Invalid request parameters
 
   /users/{userId}:
     get:
       operationId: getUser
-      summary: 获取用户详情
-      description: 根据 ID 获取单个用户的详细信息
+      summary: Get user details
+      description: Get detailed information for a single user by ID
       tags:
         - users
       parameters:
         - name: userId
           in: path
-          description: 用户 ID
+          description: User ID
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: 成功返回用户信息
+          description: User information returned successfully
         '404':
-          description: 用户不存在
+          description: User not found
 
     put:
       operationId: updateUser
-      summary: 更新用户信息
-      description: 更新指定用户的信息
+      summary: Update user information
+      description: Update information for the specified user
       tags:
         - users
       parameters:
         - name: userId
           in: path
-          description: 用户 ID
+          description: User ID
           required: true
           schema:
             type: string
       requestBody:
-        description: 更新的用户信息
+        description: Updated user information
         required: true
         content:
           application/json:
@@ -99,55 +99,55 @@ paths:
               $ref: '#/components/schemas/User'
       responses:
         '200':
-          description: 更新成功
+          description: Updated successfully
         '404':
-          description: 用户不存在
+          description: User not found
 
     delete:
       operationId: deleteUser
-      summary: 删除用户
-      description: 删除指定的用户
+      summary: Delete user
+      description: Delete the specified user
       tags:
         - users
       parameters:
         - name: userId
           in: path
-          description: 用户 ID
+          description: User ID
           required: true
           schema:
             type: string
       responses:
         '204':
-          description: 删除成功
+          description: Deleted successfully
         '404':
-          description: 用户不存在
+          description: User not found
 
   /posts:
     get:
       operationId: listPosts
-      summary: 获取文章列表
-      description: 获取所有文章的列表
+      summary: Get post list
+      description: Get a list of all posts
       tags:
         - posts
       parameters:
         - name: userId
           in: query
-          description: 筛选指定用户的文章
+          description: Filter posts by a specific user
           required: false
           schema:
             type: string
       responses:
         '200':
-          description: 成功返回文章列表
+          description: Post list returned successfully
 
     post:
       operationId: createPost
-      summary: 创建文章
-      description: 创建一篇新文章
+      summary: Create post
+      description: Create a new post
       tags:
         - posts
       requestBody:
-        description: 文章内容
+        description: Post content
         required: true
         content:
           application/json:
@@ -155,72 +155,72 @@ paths:
               $ref: '#/components/schemas/Post'
       responses:
         '201':
-          description: 文章创建成功
+          description: Post created successfully
 
   /posts/{postId}:
     get:
       operationId: getPost
-      summary: 获取文章详情
-      description: 根据 ID 获取单篇文章的详细内容
+      summary: Get post details
+      description: Get detailed content for a single post by ID
       tags:
         - posts
       parameters:
         - name: postId
           in: path
-          description: 文章 ID
+          description: Post ID
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: 成功返回文章信息
+          description: Post information returned successfully
         '404':
-          description: 文章不存在
+          description: Post not found
 
 components:
   schemas:
     User:
       type: object
-      description: 用户信息
+      description: User information
       properties:
         id:
           type: string
-          description: 用户 ID
+          description: User ID
         name:
           type: string
-          description: 用户名称
+          description: User name
         email:
           type: string
           format: email
-          description: 用户邮箱
+          description: User email
         createdAt:
           type: string
           format: date-time
-          description: 创建时间
+          description: Created time
       required:
         - name
         - email
 
     Post:
       type: object
-      description: 文章信息
+      description: Post information
       properties:
         id:
           type: string
-          description: 文章 ID
+          description: Post ID
         title:
           type: string
-          description: 文章标题
+          description: Post title
         content:
           type: string
-          description: 文章内容
+          description: Post content
         userId:
           type: string
-          description: 作者用户 ID
+          description: Author user ID
         createdAt:
           type: string
           format: date-time
-          description: 创建时间
+          description: Created time
       required:
         - title
         - content

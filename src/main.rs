@@ -37,7 +37,7 @@ struct JsonRpcError {
     message: String,
 }
 
-// ==================== OpenAPI 数据结构 ====================
+// ==================== OpenAPI Data Structures ====================
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -165,12 +165,12 @@ impl OpenApiHandler {
             let mut spec_guard = self.spec.write().await;
             *spec_guard = Some(spec);
         }
-        Ok(format!("成功加载 OpenAPI 规范"))
+        Ok(format!("OpenAPI spec loaded successfully"))
     }
 
     async fn list_apis(&self) -> Result<String> {
         let spec = self.spec.read().await;
-        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("未加载 OpenAPI 规范"))?;
+        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("OpenAPI spec is not loaded"))?;
 
         let mut result = String::new();
         result.push_str(&format!("# {}\n\n", spec.info.title));
@@ -199,10 +199,10 @@ impl OpenApiHandler {
 
     async fn get_api(&self, path: &str, method: &str) -> Result<String> {
         let spec = self.spec.read().await;
-        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("未加载 OpenAPI 规范"))?;
+        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("OpenAPI spec is not loaded"))?;
 
         let path_item = spec.paths.get(path)
-            .ok_or_else(|| anyhow::anyhow!("找不到路径: {}", path))?;
+            .ok_or_else(|| anyhow::anyhow!("Path not found: {}", path))?;
 
         let operation = match method.to_uppercase().as_str() {
             "GET" => path_item.get.as_ref(),
@@ -210,24 +210,24 @@ impl OpenApiHandler {
             "PUT" => path_item.put.as_ref(),
             "DELETE" => path_item.delete.as_ref(),
             "PATCH" => path_item.patch.as_ref(),
-            _ => return Err(anyhow::anyhow!("不支持的 HTTP 方法: {}", method)),
+            _ => return Err(anyhow::anyhow!("Unsupported HTTP method: {}", method)),
         };
 
-        let operation = operation.ok_or_else(|| anyhow::anyhow!("路径 {} 没有 {} 方法", path, method))?;
+        let operation = operation.ok_or_else(|| anyhow::anyhow!("Path {} does not have method {}", path, method))?;
 
         let mut result = String::new();
         result.push_str(&format!("# {} {}\n\n", method.to_uppercase(), path));
 
         if let Some(summary) = &operation.summary {
-            result.push_str(&format!("**总结:** {}\n\n", summary));
+            result.push_str(&format!("**Summary:** {}\n\n", summary));
         }
 
         if let Some(params) = &operation.parameters {
-            result.push_str("**参数:**\n");
+            result.push_str("**Parameters:**\n");
             for param in params {
                 result.push_str(&format!("- `{}` ({})", param.name, param.r#in));
                 if param.required.unwrap_or(false) {
-                    result.push_str(" **[必填]**");
+                    result.push_str(" **[Required]**");
                 }
                 result.push('\n');
             }
@@ -239,7 +239,7 @@ impl OpenApiHandler {
 
     async fn search_apis(&self, keyword: &str) -> Result<String> {
         let spec = self.spec.read().await;
-        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("未加载 OpenAPI 规范"))?;
+        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("OpenAPI spec is not loaded"))?;
 
         let keyword_lower = keyword.to_lowercase();
         let mut results = Vec::new();
@@ -270,11 +270,11 @@ impl OpenApiHandler {
         }
 
         if results.is_empty() {
-            return Ok(format!("未找到包含 \"{}\" 的 API", keyword));
+            return Ok(format!("No APIs found containing \"{}\"", keyword));
         }
 
         let mut result = String::new();
-        result.push_str(&format!("搜索 \"{}\" 找到 {} 个结果:\n\n", keyword, results.len()));
+        result.push_str(&format!("Search for \"{}\" returned {} result(s):\n\n", keyword, results.len()));
         for (path, methods) in results {
             result.push_str(&format!("## {}\n", path));
             for (method, summary) in methods {
@@ -287,18 +287,18 @@ impl OpenApiHandler {
 
     async fn get_servers(&self) -> Result<String> {
         let spec = self.spec.read().await;
-        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("未加载 OpenAPI 规范"))?;
+        let spec = spec.as_ref().ok_or_else(|| anyhow::anyhow!("OpenAPI spec is not loaded"))?;
 
         if spec.servers.is_empty() {
-            return Ok("未定义服务器".to_string());
+            return Ok("No servers defined".to_string());
         }
 
         let mut result = String::new();
-        result.push_str("**服务器:**\n\n");
+        result.push_str("**Servers:**\n\n");
         for server in &spec.servers {
             result.push_str(&format!("- URL: {}\n", server.url));
             if let Some(desc) = &server.description {
-                result.push_str(&format!("  描述: {}\n", desc));
+                result.push_str(&format!("  Description: {}\n", desc));
             }
         }
         Ok(result)
@@ -338,7 +338,7 @@ async fn main() -> Result<()> {
                 stdout.flush()?;
             }
             Err(e) => {
-                eprintln!("解析请求失败: {}", e);
+                eprintln!("Failed to parse request: {}", e);
             }
         }
     }
@@ -365,23 +365,23 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                 "tools": [
                     {
                         "name": "load_openapi",
-                        "description": "加载 OpenAPI/YAML 规范文件",
+                        "description": "Load an OpenAPI/YAML spec file",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
-                                "path": {"type": "string", "description": "OpenAPI YAML 文件的绝对路径"}
+                                "path": {"type": "string", "description": "Absolute path to an OpenAPI YAML file"}
                             },
                             "required": ["path"]
                         }
                     },
                     {
                         "name": "list_apis",
-                        "description": "列出所有 API 端点",
+                        "description": "List all API endpoints",
                         "inputSchema": {"type": "object", "properties": {}}
                     },
                     {
                         "name": "get_api",
-                        "description": "获取指定 API 的详细信息",
+                        "description": "Get details for a specific API",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -393,7 +393,7 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                     },
                     {
                         "name": "search_apis",
-                        "description": "搜索 API",
+                        "description": "Search APIs",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -404,7 +404,7 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                     },
                     {
                         "name": "get_servers",
-                        "description": "获取服务器信息",
+                        "description": "Get server information",
                         "inputSchema": {"type": "object", "properties": {}}
                     }
                 ]
@@ -420,20 +420,20 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                         if let Some(args) = arguments {
                             if let Some(path) = args.get("path").and_then(|v| v.as_str()) {
                                 match handler.load_spec(Path::new(path)).await {
-                                    Ok(_) => json!({"content": [{"type": "text", "text": "成功加载"}]}),
-                                    Err(e) => json!({"content": [{"type": "text", "text": format!("错误: {}", e)}], "isError": true}),
+                                    Ok(_) => json!({"content": [{"type": "text", "text": "Loaded successfully"}]}),
+                                    Err(e) => json!({"content": [{"type": "text", "text": format!("Error: {}", e)}], "isError": true}),
                                 }
                             } else {
-                                json!({"content": [{"type": "text", "text": "缺少 path 参数"}], "isError": true})
+                                json!({"content": [{"type": "text", "text": "Missing path argument"}], "isError": true})
                             }
                         } else {
-                            json!({"content": [{"type": "text", "text": "缺少参数"}], "isError": true})
+                            json!({"content": [{"type": "text", "text": "Missing arguments"}], "isError": true})
                         }
                     }
                     "list_apis" => {
                         match handler.list_apis().await {
                             Ok(r) => json!({"content": [{"type": "text", "text": r}]}),
-                            Err(e) => json!({"content": [{"type": "text", "text": format!("错误: {}", e)}], "isError": true}),
+                            Err(e) => json!({"content": [{"type": "text", "text": format!("Error: {}", e)}], "isError": true}),
                         }
                     }
                     "get_api" => {
@@ -442,10 +442,10 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                             let method = args.get("method").and_then(|v| v.as_str()).unwrap_or("");
                             match handler.get_api(path, method).await {
                                 Ok(r) => json!({"content": [{"type": "text", "text": r}]}),
-                                Err(e) => json!({"content": [{"type": "text", "text": format!("错误: {}", e)}], "isError": true}),
+                                Err(e) => json!({"content": [{"type": "text", "text": format!("Error: {}", e)}], "isError": true}),
                             }
                         } else {
-                            json!({"content": [{"type": "text", "text": "缺少参数"}], "isError": true})
+                            json!({"content": [{"type": "text", "text": "Missing arguments"}], "isError": true})
                         }
                     }
                     "search_apis" => {
@@ -453,27 +453,27 @@ async fn handle_request(handler: &OpenApiHandler, req: JsonRpcRequest) -> JsonRp
                             let keyword = args.get("keyword").and_then(|v| v.as_str()).unwrap_or("");
                             match handler.search_apis(keyword).await {
                                 Ok(r) => json!({"content": [{"type": "text", "text": r}]}),
-                                Err(e) => json!({"content": [{"type": "text", "text": format!("错误: {}", e)}], "isError": true}),
+                                Err(e) => json!({"content": [{"type": "text", "text": format!("Error: {}", e)}], "isError": true}),
                             }
                         } else {
-                            json!({"content": [{"type": "text", "text": "缺少参数"}], "isError": true})
+                            json!({"content": [{"type": "text", "text": "Missing arguments"}], "isError": true})
                         }
                     }
                     "get_servers" => {
                         match handler.get_servers().await {
                             Ok(r) => json!({"content": [{"type": "text", "text": r}]}),
-                            Err(e) => json!({"content": [{"type": "text", "text": format!("错误: {}", e)}], "isError": true}),
+                            Err(e) => json!({"content": [{"type": "text", "text": format!("Error: {}", e)}], "isError": true}),
                         }
                     }
-                    _ => json!({"content": [{"type": "text", "text": format!("未知工具: {}", tool_name)}], "isError": true}),
+                    _ => json!({"content": [{"type": "text", "text": format!("Unknown tool: {}", tool_name)}], "isError": true}),
                 };
                 result
             } else {
-                json!({"content": [{"type": "text", "text": "缺少参数"}], "isError": true})
+                json!({"content": [{"type": "text", "text": "Missing arguments"}], "isError": true})
             }
         }
         _ => json!({
-            "error": {"code": -32601, "message": format!("未知方法: {}", req.method)}
+            "error": {"code": -32601, "message": format!("Unknown method: {}", req.method)}
         }),
     };
 
